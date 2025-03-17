@@ -447,14 +447,10 @@ class RiskAssessmentDialog(QDialog):
         self.coordinates_table.insertRow(row_position)
 
     def run_risk_assessment(self):
-        dialog = RiskAssessmentDialog(self.plugin_dir, self)
-        dialog.show()
         project_folder = QFileDialog.getExistingDirectory(self, "Select Project Folder")
         if not project_folder:
             return
         self.iface.messageBar().pushMessage("Info", "Running risk assessment...", level=0)
-        if not project_folder:
-            return
         self.project_folder = project_folder
 
         groups = self.group_name_textbox.text().split()
@@ -815,10 +811,10 @@ class RiskAssessmentDialog(QDialog):
                     # Write output file
                     output_path = os.path.join(risk_path, f"POP_RISK_{site_type}_{risk_type}_{group}.txt")
                     with open(output_path, "w") as f:
-                        f.write("CAIRO © ~ Population Risk Assessment © 2025\n")
+                        f.write("CAIRO © ~ Quantitative Population Risk Assessment © 2025\n")
                         f.write(f"Group {group} processed for {site_type} Inhalation Risk, Risk Type: {risk_type}\n")
                         f.write(f"Area Attribute: {area_attr}, Population Attribute: {pop_attr},"
-                                f" Pollutant: {self.selected_pollutant}\n\n")
+                                f" Pollutant: {self.selected_pollutant}, H - R>1*10-6; (ACUTE, HI)>1\n\n")
                         conc_label = "C(1H)" if risk_type == "ACUTE" else f"C"
                         header = "{:>20}, {:>12}, {:>13}, {:>13}\n".format("AREA", "POPULATION",
                                                                            risk_type, conc_label)
@@ -850,7 +846,8 @@ class RiskAssessmentDialog(QDialog):
             pop_attr = self.population_attribute_combo.currentText()
             f.write("CAIRO © ~ Quantitative Population Risk Assessment © 2025\n")
             f.write(f"Area Attribute: {area_attr}, Population Attribute: {pop_attr},"
-                    f"Averaged risk and concentration values over areas for {self.selected_pollutant}\n\n")
+                    f"Averaged risk and concentration values over areas for {self.selected_pollutant},"
+                    f" H - R>1*10-6; (ACUTE, HI)>1n\n")
 
             for group in groups:
                 f.write(f"{group}\n\n")
@@ -862,13 +859,11 @@ class RiskAssessmentDialog(QDialog):
 
                 for site_type, site_title in site_types:
                     f.write(f"{site_title}\n")
-                    # Paths to POP_RISK_*.txt files
                     risk_path = os.path.join(project_folder, "RISK", f"risk_{group}", site_type)
                     acute_file = os.path.join(risk_path, "ACUTE", f"POP_RISK_{site_type}_ACUTE_{group}.txt")
                     hi_file = os.path.join(risk_path, "HI", f"POP_RISK_{site_type}_HI_{group}.txt")
                     r_file = os.path.join(risk_path, "R", f"POP_RISK_{site_type}_R_{group}.txt")
 
-                    # Check availability
                     has_acute = os.path.exists(acute_file)
                     has_hi = os.path.exists(hi_file)
                     has_r = os.path.exists(r_file)
@@ -878,7 +873,7 @@ class RiskAssessmentDialog(QDialog):
                     data = {}
                     if has_acute:
                         with open(acute_file, "r") as af:
-                            lines = af.readlines()[5:]  # Skip header (4 lines)
+                            lines = af.readlines()[5:]
                             for line in lines:
                                 parts = line.split(",")
                                 if len(parts) >= 4:
@@ -1111,7 +1106,7 @@ class RiskAssessmentDialog(QDialog):
                 risk_type_text = "Carcinogenic Risk" if risk_type == "R" else "Toxicological Risk"
                 f.write(
                     f"Risk Assessment at specific receptors for {inhalation_type} {risk_type_text}\n"
-                    f"{group} proccessed at averaging period: {file_avg_period}\n"
+                    f"{group} proccessed at averaging period: {file_avg_period}, H - R>1*10-6; (ACUTE, HI)>1\n"
                     f"Receptor: {selected_receptor}; Most Critical Receptor = {critical_receptor_state}\n"
                     f"Pollutant: {self.selected_pollutant}\n"
                     f"Acceptable Concentration: C({risk_type_text}) < {C_acc:.5f}\n"
@@ -1271,7 +1266,8 @@ class RiskAssessmentDialog(QDialog):
             critical_receptor_state = "true" if self.critical_receptor_checkbox.isChecked() else "false"
             f.write("CAIRO © ~ Air Risk Assessment Module © 2025.\n")
             f.write("Risk Assessment at specific receptors Summary Table\n")
-            f.write(f"Receptor: {selected_receptor}; Most Critical Receptor = {critical_receptor_state}\n\n")
+            f.write(f"Receptor: {selected_receptor}; Most Critical Receptor = {critical_receptor_state}, "
+                    f"H - R>1*10-6; (ACUTE, HI)>1\n\n")
             f.write(f"Pollutant: {self.selected_pollutant}\n")
             acc_lines = []
             for risk_type, value in C_acc.items():
@@ -1742,7 +1738,7 @@ class InfoDialog(QDialog):
         info_text = QTextEdit()
         info_text.setReadOnly(True)
         info_text.setText(
-            "CAIRO © ~ Compile AERMOD Input and Risk Omniware\n\n"
+            "CAIRO © ~ Compile AERMOD Input and Risk Omniware ©\n\n"
             "Tutorial: [Link to tutorial video]\n\n"
             "Created by MSc Dominik Subotić in collaboration with Prof. Giorgio Passerini "
             "and PhD Simone Virgili at Università Politecnica delle Marche, Italy, in 2025.\n\n"
